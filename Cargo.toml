@@ -1,0 +1,8 @@
+[workspace]
+members = [
+  "crates/core",
+  "crates/data-plane",
+  "crates/control-plane"
+]
+
+resolver = "2"

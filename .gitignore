@@ -1,0 +1,11 @@
+target/
+
+# OS files
+.DS_Store
+
+# ENV
+.env
+
+# Code caching / tools
+.idea/
+.vscode/
