@@ -1,5 +1,13 @@
 # RateGuard
 
+## Database Migrations
+For this MVP, database migrations are handled automatically upon startup by the `Control Plane`. When you run `cargo run --bin rateguard-control-plane`, the application automatically connects to Postgres, creates any missing tables, and applies schema updates (such as adding the `route_overrides` column). No manual migration tool is required.
+
+## API Documentation (Swagger)
+The Control Plane serves a fully interactive Swagger UI dashboard detailing all endpoints, parameters, and models.
+Once the Control Plane is running, visit: **[http://localhost:3001/swagger-ui/](http://localhost:3001/swagger-ui/)**
+
+
 A developer-first rate limiting service with modular architecture.
 
 ## Architecture

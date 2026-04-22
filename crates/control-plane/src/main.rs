@@ -32,11 +32,17 @@ async fn init_db(pool: &Pool<Postgres>) -> Result<(), sqlx::Error> {
         "CREATE TABLE IF NOT EXISTS tiers (
             name VARCHAR(50) PRIMARY KEY,
             limit_val BIGINT NOT NULL,
-            window_seconds BIGINT NOT NULL
+            window_seconds BIGINT NOT NULL,
+            route_overrides JSONB
         );"
     )
     .execute(pool)
     .await?;
+
+    // Add column for existing instances if they were created before this feature
+    let _ = sqlx::query("ALTER TABLE tiers ADD COLUMN route_overrides JSONB")
+        .execute(pool)
+        .await;
 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS api_keys (

@@ -14,6 +14,7 @@ impl RedisLimiter {
         api_key: &str,
         _limit: i64,
         window: i64,
+        override_path: Option<String>,
     ) -> Result<(i64, u64), Box<dyn std::error::Error + Send + Sync>> {
         let mut conn = self.client.get_multiplexed_async_connection().await?;
         
@@ -22,7 +23,10 @@ impl RedisLimiter {
         let current_window = now / window_u64;
         let reset_time = (current_window + 1) * window_u64;
         
-        let redis_key = format!("rate_limit:{}:{}", api_key, current_window);
+        let redis_key = match override_path {
+            Some(path) => format!("rate_limit:{}:route:{}:{}", api_key, path, current_window),
+            None => format!("rate_limit:{}:global:{}", api_key, current_window),
+        };
         
         let (count, _): (i64, i64) = redis::pipe()
             .atomic()

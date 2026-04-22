@@ -59,9 +59,27 @@ where
             
             let api_key_val = api_key_header.unwrap().to_string();
 
-            let (tier_name, limit, window) = if let Some(key_obj) = state.cache.get_api_key(&api_key_val) {
+            let path = req.path().to_string();
+
+            let (tier_name, limit, window, override_path) = if let Some(key_obj) = state.cache.get_api_key(&api_key_val) {
                 if let Some(tier_obj) = state.cache.get_tier(&key_obj.tier) {
-                    (tier_obj.name, tier_obj.limit, tier_obj.window_seconds)
+                    let mut final_limit = tier_obj.limit;
+                    let mut final_window = tier_obj.window_seconds;
+                    let mut final_path = None;
+
+                    if let Some(overrides) = &tier_obj.route_overrides {
+                        for route_limit in overrides {
+                            // Simple prefix or exact match
+                            if path == route_limit.path || path.starts_with(&route_limit.path) {
+                                final_limit = route_limit.limit;
+                                final_window = route_limit.window_seconds;
+                                final_path = Some(route_limit.path.clone());
+                                break;
+                            }
+                        }
+                    }
+
+                    (tier_obj.name.clone(), final_limit, final_window, final_path)
                 } else {
                     let res = HttpResponse::Unauthorized().finish().map_into_right_body();
                     return Ok(req.into_response(res));
@@ -73,7 +91,7 @@ where
 
             state.stats.record_request();
 
-            match state.limiter.check_limit(&api_key_val, limit, window).await {
+            match state.limiter.check_limit(&api_key_val, limit, window, override_path).await {
                 Ok((count, reset_time)) => {
                     let remaining = (limit - count).max(0);
                     let now = std::time::SystemTime::now()
