@@ -1,5 +1,6 @@
 use std::sync::Arc;
 pub mod app;
+pub mod config;
 pub mod cache;
 pub mod client;
 pub mod limiter;

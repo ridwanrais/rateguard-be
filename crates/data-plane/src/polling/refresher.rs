@@ -3,7 +3,7 @@ use crate::cache::config_store::ConfigStore;
 use std::time::Duration;
 use rand::Rng;
 
-pub async fn start_refresher(client: ControlPlaneClient, store: ConfigStore) {
+pub async fn start_refresher(client: ControlPlaneClient, store: ConfigStore, interval: u64) {
     tokio::spawn(async move {
         loop {
             match client.fetch_config().await {
@@ -17,7 +17,7 @@ pub async fn start_refresher(client: ControlPlaneClient, store: ConfigStore) {
             }
 
             let jitter = rand::thread_rng().gen_range(0..5);
-            tokio::time::sleep(Duration::from_secs(30 + jitter)).await;
+            tokio::time::sleep(Duration::from_secs(interval + jitter)).await;
         }
     });
 }

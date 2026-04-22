@@ -1,21 +1,21 @@
 use rateguard_control_plane::app;
+use rateguard_control_plane::config::AppConfig;
 use rateguard_control_plane::db::pool;
 use sqlx::{Pool, Postgres};
 use uuid::Uuid;
 
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> std::io::Result<()> {
     dotenvy::dotenv().ok();
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/rateguard".to_string());
+    let config = envy::from_env::<AppConfig>().expect("Failed to parse configuration from environment");
 
     println!("Connecting to database...");
-    let pool = pool::init_pool(&database_url).await.expect("Failed to connect to database");
+    let pool = pool::init_pool(&config.database_url).await.expect("Failed to connect to database");
 
     println!("Initializing DB schema...");
     init_db(&pool).await.expect("Failed to initialize DB");
 
-    app::run_server(pool).await
+    app::run_server(pool, config.port).await
 }
 
 async fn init_db(pool: &Pool<Postgres>) -> Result<(), sqlx::Error> {
