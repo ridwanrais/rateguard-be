@@ -8,6 +8,7 @@ The Control Plane serves a fully interactive Swagger UI dashboard detailing all 
 Once the Control Plane is running, visit: **[http://localhost:3001/swagger-ui/](http://localhost:3001/swagger-ui/)**
 
 
+
 A developer-first rate limiting service with modular architecture.
 
 ## Architecture
@@ -36,14 +37,16 @@ A developer-first rate limiting service with modular architecture.
    > Port: 3000. Polls control plane every 30s.
 
 ## Testing
+RateGuard includes a comprehensive native Rust integration test suite that verifies end-to-end rate limiting scenarios, including global limits and route-specific overrides.
 
-You can use the provided test script:
-```shell
-chmod +x scripts/test_requests.sh
-./scripts/test_requests.sh
+### Prerequisites
+1. Ensure **Postgres** and **Redis** are running (via `docker-compose up -d`).
+2. Start the **Control Plane**: `cargo run --bin rateguard-control-plane`.
+3. Start the **Data Plane**: `cargo run --bin rateguard-data-plane`.
+
+### Running Tests
+Run the following command from the root directory:
+```bash
+cargo test -p rateguard-integration-tests -- --nocapture
 ```
-
-Or manually:
-1. Create Tier: `POST :3001/tiers`
-2. Create Key: `POST :3001/api-keys`
-3. Request: `GET :3000/` with `X-API-Key` header.
+*Note: The test suite automatically cleans up the database before running, so you don't need to manually wipe your tables.*
